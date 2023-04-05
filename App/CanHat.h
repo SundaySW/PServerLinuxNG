@@ -16,8 +16,6 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 
 class CanHat: public Protos::Port{
 public:
@@ -37,13 +35,10 @@ private:
     sockaddr_can addr;
     std::deque<Protos::Packet> RxQueue;
     bool isOpened = false;
-    using ULock = std::unique_lock<std::mutex>;
-    volatile bool ThreadStop = false;
-    std::mutex Mutex;
+    std::atomic<bool> threadFlag{false};
     std::thread Thread;
     static void ParseSocketCanPacket(const can_frame&,Protos::Packet&);
     bool closeConnection();
-    bool CheckCondition();
     void ReadThread();
 };
 

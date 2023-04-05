@@ -54,6 +54,7 @@ bool CanHat::Open(const Protos::Port::StringMap &params) {
 //    setsockopt(canSocketFd, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &fd_frames, sizeof(fd_frames));
 
     isOpened = true;
+    threadFlag.store(true);
     Thread = std::thread([this](){ ReadThread();});
     return true;
 }
@@ -65,9 +66,7 @@ bool CanHat::Close() {
 bool CanHat::closeConnection(){
     if (Thread.joinable())
     {
-        ULock lock(Mutex);
-        ThreadStop = true;
-        lock.unlock();
+        threadFlag.store(false);
         Thread.join();
     }
     RxQueue.clear();
@@ -92,7 +91,7 @@ int CanHat::Read(Protos::Packet *packets, int count) {
 void CanHat::ReadThread(){
     int bytes;
     can_frame frame{};
-    while (!CheckCondition()){
+    while (threadFlag.load()){
         memset(&frame, 0, sizeof(struct can_frame));
         bytes = read(canSocketFd, &frame, sizeof(frame));
         if(!bytes) continue;
@@ -100,7 +99,6 @@ void CanHat::ReadThread(){
             //todo handle error
             continue;
         }
-//        printf("can_id = 0x%X\r\ncan_dlc = %d \r\n", frame.can_id, frame.can_dlc);
         Protos::Packet packet;
         ParseSocketCanPacket(frame, packet);
         RxQueue.push_back(packet);
@@ -161,9 +159,4 @@ CanHat::~CanHat() {
 std::unique_ptr<Protos::Port> CanHat::CreateCanHat()
 {
     return std::unique_ptr<Protos::Port>(new CanHat());
-}
-
-bool CanHat::CheckCondition() {
-    ULock lock(Mutex);
-    return ThreadStop;
 }
