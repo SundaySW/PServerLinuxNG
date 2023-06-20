@@ -51,7 +51,7 @@ namespace Protos
 		std::unique_ptr<Protos::Port> Port;
 		std::thread Thread;
 		std::condition_variable Cv;
-		bool StopWork = false;
+		volatile bool StopWork = false;
 		bool Posted = false;
 	};
 }

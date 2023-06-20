@@ -8,16 +8,15 @@ add_definitions(-D_BUILD_TYPE_="${CMAKE_BUILD_TYPE}")
 
 message("SysName: ${CMAKE_SYSTEM_NAME}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CMAKE_PREFIX_PATH $ENV{HOME}/rpi/qt5.15)
 #    set(TARGET_USER sa)
 #    set(CMAKE_INSTALL_RPATH "/home/${TARGET_USER}/${PROJECT_NAME}")
 #    message(====!!!!!Check ExtPath!!!!!!====== ${CMAKE_INSTALL_RPATH})
 endif()
 
-#if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #    enable_language("RC")
 #    set (WIN32_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/windows/ProtosServer.rc)
-#endif()
+endif()
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -47,7 +46,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
 set(SOURCE_FILES
         ${SOURCES}
         #${WIN32_RESOURCES}
-        App/USBCANM2.h)
+        )
 
 add_subdirectory(Protos)
 
@@ -92,17 +91,19 @@ ENDIF()
 
 IF(CMAKE_BUILD_TYPE MATCHES Release)
     message("Release build!")
-    set_property(TARGET ${PROJECT_NAME} PROPERTY WIN32_EXECUTABLE true)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set_property(TARGET ${PROJECT_NAME} PROPERTY WIN32_EXECUTABLE true)
+        add_custom_command(
+                TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Protos/bin ${CMAKE_CURRENT_BINARY_DIR}/
+        )
+        add_custom_command(
+                TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND windeployqt "$<TARGET_FILE:${PROJECT_NAME}>"
+                VERBATIM
+        )
+    endif()
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/protos_server.conf ${CMAKE_CURRENT_BINARY_DIR}/protos_server.conf COPYONLY)
-    add_custom_command(
-            TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Protos/bin ${CMAKE_CURRENT_BINARY_DIR}/
-    )
-    add_custom_command(
-            TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND windeployqt "$<TARGET_FILE:${PROJECT_NAME}>"
-            VERBATIM
-    )
     add_custom_command(
             TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/CMakeCache.txt
@@ -110,8 +111,6 @@ IF(CMAKE_BUILD_TYPE MATCHES Release)
             COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/Makefile
             COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
             COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.cbp
-            COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/D3Dcompiler_47.dll
-            COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_CURRENT_BINARY_DIR}/opengl32sw.dll
 
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen

@@ -73,8 +73,7 @@ namespace Protos
 	{
 		Stop();
 		QString e;
-		Conf::Read((QCoreApplication::applicationDirPath() +
-			"/protos_server.conf").toStdString(), e);
+		Conf::Read((QCoreApplication::applicationDirPath() + "/protos_server.conf").toStdString(), e);
 	/*	if (Conf::Port.Type == Protos::PORT_MOXACP602EI)
 		{
 			Port = CreateMoxaCP602();
@@ -117,24 +116,20 @@ namespace Protos
 	void Transporter::ThreadProc()
 	{
 		std::optional<QEventLoop> loop;
-		if (Conf::Port.Type == Protos::PORT_CAN_USB_M)
-		{
-			loop.emplace();
-			Port = USBCANM2::CreateUSBCANM2();
-			Port->Open(Conf::Port.Params);
-		}
-        else if(Conf::Port.Type == Protos::PORT_CAN_HAT){
-            loop.emplace();
-            Port = CanHat::CreateCanHat();
-            Port->Open(Conf::Port.Params);
+        switch (Conf::Port.Type) {
+            case Protos::PORT_CAN_USB_M:
+                loop.emplace();
+                Port = USBCANM2::CreateUSBCANM2();
+                Port->Open(Conf::Port.Params);
+                break;
+            case Protos::PORT_CAN_HAT:
+                loop.emplace();
+                Port = CanHat::CreateCanHat();
+                Port->Open(Conf::Port.Params);
+                break;
+            default:
+                return;
         }
-		else
-		{
-			return;
-			//error = QStringLiteral("���������������� ��� �����.");
-			//return false;
-		}
-
 		if (!Port->IsOpen())
 		{
 			return;

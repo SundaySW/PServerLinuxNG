@@ -14,10 +14,8 @@ int main(int argv, char** argc)
 {
     QCoreApplication app(argv, argc);
     Server = new ServerApp();
-    if (Server)
-	{
+    if(Server)
 		Server->Start();
-		delete Server;
-	}
+    QCoreApplication::exec();
 	return 0;
 }

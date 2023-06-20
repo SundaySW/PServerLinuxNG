@@ -323,12 +323,11 @@ void ServerApp::Start()
 	Port.Restart(portError);
 
 	Server->Restart();
-	QCoreApplication::instance()->exec();
 }
 
 void ServerApp::Stop()
 {
 	Server->Close();
 	Port.Stop();
-	QCoreApplication::instance()->exit();
+	QCoreApplication::exit();
 }

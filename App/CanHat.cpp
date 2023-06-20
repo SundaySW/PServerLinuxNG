@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <QThread>
+#include <iostream>
 #include "CanHat.h"
 
 CanHat::CanHat()
@@ -19,8 +20,8 @@ bool CanHat::Open(const Protos::Port::StringMap &params) {
 //    Param canBitrate_bps{ "CANBitrate",	500000 };
 //    QByteArray cmd = QString("sudo ip link set can0 up type can bitrate %1").arg(canBitrate_bps.Value).toLocal8Bit();
 //    system(cmd.data());
-    system("sudo ip link set can0 up type can bitrate 500000");
-    system("sudo ifconfig can0 txqueuelen 65536");
+//    system("sudo ip link set can0 up type can bitrate 500000");
+//    system("sudo ifconfig can0 txqueuelen 65536");
 
     //Create socket
     canSocketFd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -73,7 +74,7 @@ bool CanHat::closeConnection(){
 
     if(isOpened){
         close(canSocketFd);
-        system("sudo ip link set can0 down");
+//        system("sudo ip link set can0 down");
         isOpened = false;
     }
     return true;
